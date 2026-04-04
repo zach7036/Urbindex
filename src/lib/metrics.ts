@@ -73,7 +73,7 @@ export const METRICS: MetricDef[] = [
   { key: 'median_year_built', label: 'Median Year Built', category: 'housing', table: 'city_housing', format: 'year', higherIsBetter: true, description: 'Midpoint construction year of the housing stock' },
   { key: 'price_to_income_ratio', label: 'Price-to-Income Ratio', category: 'housing', table: 'city_housing', format: 'ratio', higherIsBetter: false, description: 'Home value divided by median income — lower means more affordable' },
   { key: 'rent_to_income_ratio', label: 'Rent-to-Income Ratio', category: 'housing', table: 'city_housing', format: 'percent', higherIsBetter: false, description: 'Percentage of income spent on rent — under 30% is considered affordable' },
-  { key: 'housing_cost_burden_pct', label: 'Housing Cost Burden %', category: 'housing', table: 'city_housing', format: 'percent', higherIsBetter: false, description: 'Percentage of households spending over 30% of income on housing' },
+
   { key: 'yoy_appreciation', label: 'YoY Home Appreciation', category: 'housing', table: 'city_housing', format: 'percent', higherIsBetter: true, description: 'Year-over-year percentage change in home values' },
 
   // ─── Climate ────────────────────────────────────────
@@ -102,8 +102,7 @@ export const METRICS: MetricDef[] = [
   { key: 'high_school_grad_pct', label: 'High School Graduation %', category: 'education', table: 'city_education', format: 'percent', higherIsBetter: true, description: 'Percentage of adults 25+ with a high school diploma or equivalent' },
   { key: 'bachelors_pct', label: "Bachelor's Degree %", category: 'education', table: 'city_education', format: 'percent', higherIsBetter: true, nationalAvg: 33.7, description: "Percentage of adults 25+ with a bachelor's degree or higher" },
   { key: 'graduate_pct', label: 'Graduate Degree %', category: 'education', table: 'city_education', format: 'percent', higherIsBetter: true, description: "Percentage of adults 25+ with a master's, doctoral, or professional degree" },
-  { key: 'student_teacher_ratio', label: 'Student-Teacher Ratio', category: 'education', table: 'city_education', format: 'ratio', higherIsBetter: false, description: 'Average number of students per teacher in local schools' },
-  { key: 'school_expenditure_per_pupil', label: 'School Spending / Pupil', category: 'education', table: 'city_education', format: 'currency', higherIsBetter: true, description: 'Annual spending per student in the local school district' },
+
 
   // ─── Livability ────────────────────────────────────────
   { key: 'walkscore', label: 'Walk Score', category: 'livability', table: 'city_livability', format: 'score', higherIsBetter: true, description: 'How walkable the city is based on nearby amenities (0–100)' },

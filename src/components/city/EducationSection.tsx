@@ -46,7 +46,6 @@ export default function EducationSection({ data }: Props) {
             comparison={{ avgValue: NATIONAL_AVERAGES.bachelors_pct, avgLabel: "nat'l", higherIsBetter: true }} />
           <StatCard label="High School Grad" value={data.high_school_grad_pct} format="percent" />
           <StatCard label="Graduate Degree" value={data.graduate_pct} format="percent" />
-          <StatCard label="Student-Teacher Ratio" value={data.student_teacher_ratio} format="ratio" suffix=":1" decimals={1} />
         </div>
 
         <div className="grid-2" style={{ marginTop: 'var(--space-lg)' }}>
@@ -67,40 +66,37 @@ export default function EducationSection({ data }: Props) {
           </div>
 
           <div className="chart-container">
-            <div className="chart-title">Universities &amp; Top Schools</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-              {(data.universities || []).map(u => (
-                <div key={u.name} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--color-bg-glass)', borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                }}>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{u.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>{u.type}</div>
+            <div className="chart-title">Universities &amp; Colleges</div>
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 'var(--space-md)',
+              maxHeight: '280px', overflowY: 'auto',
+              paddingRight: (data.universities || []).length > 4 ? '4px' : '0',
+            }}>
+              {(data.universities || []).length > 0 ? (
+                (data.universities || []).map(u => (
+                  <div key={u.name} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: 'var(--space-sm) var(--space-md)',
+                    background: 'var(--color-bg-glass)', borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    flexShrink: 0,
+                  }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{u.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>{u.type}</div>
+                    </div>
+                    {u.enrollment > 0 && (
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--color-accent)', whiteSpace: 'nowrap', marginLeft: '12px' }}>
+                        {u.enrollment?.toLocaleString()} students
+                      </div>
+                    )}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--color-accent)' }}>
-                    {u.enrollment?.toLocaleString() ?? 'N/A'} students
-                  </div>
+                ))
+              ) : (
+                <div style={{ color: 'var(--color-text-tertiary)', fontSize: '0.9rem', padding: 'var(--space-md)', textAlign: 'center' }}>
+                  No colleges or universities in this city
                 </div>
-              ))}
-              {(data.top_schools || []).map(s => (
-                <div key={s.name} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--color-bg-glass)', borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                }}>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{s.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>{s.type}</div>
-                  </div>
-                  <div className={`badge ${s.rating >= 9 ? 'badge-success' : s.rating >= 7 ? 'badge-info' : 'badge-warning'}`}>
-                    {s.rating}/10
-                  </div>
-                </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
