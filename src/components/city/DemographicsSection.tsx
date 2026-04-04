@@ -55,7 +55,6 @@ export default function DemographicsSection({ data }: Props) {
           <StatCard label="Growth Rate" value={data.population_growth_rate} format="percent"
             comparison={{ avgValue: NATIONAL_AVERAGES.population_growth_rate, avgLabel: "nat'l", higherIsBetter: true }} />
           <StatCard label="Foreign Born" value={data.foreign_born_pct} format="percent" />
-          <StatCard label="Veterans" value={data.veterans_pct} format="percent" />
         </div>
 
         <div className="grid-2" style={{ marginTop: 'var(--space-lg)' }}>

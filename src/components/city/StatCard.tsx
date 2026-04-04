@@ -34,18 +34,16 @@ export default function StatCard({ label, value, format, comparison, suffix, dec
 
   if (comparison) {
     const diff = value - comparison.avgValue;
-    const better = comparison.higherIsBetter ? diff > 0 : diff < 0;
+    const isHigher = diff > 0;
+    const better = comparison.higherIsBetter ? isHigher : !isHigher;
     const near = Math.abs(diff / comparison.avgValue) < 0.03;
 
     if (near) {
       compClass = 'neutral';
       CompIcon = Minus;
-    } else if (better) {
-      compClass = 'better';
-      CompIcon = TrendingUp;
     } else {
-      compClass = 'worse';
-      CompIcon = TrendingDown;
+      compClass = better ? 'better' : 'worse';
+      CompIcon = isHigher ? TrendingUp : TrendingDown;
     }
   }
 

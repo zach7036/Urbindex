@@ -100,7 +100,7 @@ export function getComparisonLabel(
       : 'worse';
 
   if (absDiff < 3) return 'Near average';
-  return `${absDiff.toFixed(0)}% ${direction} (${quality})`;
+  return `${absDiff.toFixed(0)}% ${direction}`;
 }
 
 export function getCityClass(population: number): 'large' | 'mid' | 'small' | 'micro' {

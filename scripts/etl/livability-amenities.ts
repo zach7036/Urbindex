@@ -33,7 +33,7 @@ async function getAmenities(lat: number, lng: number): Promise<any> {
     out center;
   `;
 
-  let retries = 3;
+  let retries = 10;
   while (retries > 0) {
     try {
       const res = await fetch(OVERPASS_URL, {
@@ -44,8 +44,8 @@ async function getAmenities(lat: number, lng: number): Promise<any> {
 
       if (!res.ok) {
         if (res.status === 429) {
-          process.stdout.write(' [Rate limit! waiting 30s...]');
-          await new Promise(r => setTimeout(r, 30000));
+          process.stdout.write(' [Rate limit! waiting 60s to refill quota...]');
+          await new Promise(r => setTimeout(r, 60000));
           retries--;
           continue;
         }
@@ -55,7 +55,7 @@ async function getAmenities(lat: number, lng: number): Promise<any> {
       return await res.json();
     } catch (e: any) {
       process.stdout.write(` [Err: ${e.message}]`);
-      await new Promise(r => setTimeout(r, 5000));
+      await new Promise(r => setTimeout(r, 10000));
       retries--;
     }
   }
@@ -185,8 +185,8 @@ async function main() {
       console.log(`nodes=${elements.length} | W:${wScore} T:${tScore} B:${bScore} | ${timeMs}ms`);
     }
 
-    // Generous Delay for Overpass API Limits
-    await new Promise(r => setTimeout(r, 6000));
+    // Adaptive Delay for Overpass API Limits
+    await new Promise(r => setTimeout(r, 60000));
   }
 
   console.log(`\nCompleted ${updated} cities!`);
