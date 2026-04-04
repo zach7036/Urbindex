@@ -28,6 +28,7 @@ export default function CityPicker({ selected, onSelect, onRemove, placeholder, 
   const [results, setResults] = useState<CityResult[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -130,25 +131,32 @@ export default function CityPicker({ selected, onSelect, onRemove, placeholder, 
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        background: 'var(--color-bg-glass)', border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-lg)', padding: '12px 16px',
-        minHeight: '56px',
-      }}>
+      <div
+        onClick={() => inputRef.current?.focus()}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          background: 'var(--color-bg-glass)',
+          border: focused ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+          boxShadow: focused ? '0 0 0 2px rgba(6, 214, 160, 0.15)' : 'none',
+          borderRadius: 'var(--radius-lg)', padding: '12px 16px',
+          minHeight: '56px', cursor: 'text', transition: 'border 0.2s, box-shadow 0.2s',
+        }}
+      >
         <Search size={16} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
         <input
           ref={inputRef}
           type="text"
+          className="no-focus-ring"
           placeholder={placeholder || 'Search a city...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={() => { setFocused(true); results.length > 0 && setOpen(true); }}
+          onBlur={() => setFocused(false)}
           style={{
             background: 'transparent', border: 'none', outline: 'none',
             color: 'var(--color-text-primary)', fontSize: '0.95rem',
-            width: '100%', fontFamily: 'inherit',
+            width: '100%', fontFamily: 'inherit', paddingLeft: '2px',
           }}
         />
       </div>

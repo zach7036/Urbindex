@@ -456,14 +456,20 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
 
                     {/* Data rows */}
                     {section.rows.map((row, ri) => {
-                      // Determine winner
+                      // Determine winner (no highlight on ties)
                       const validValues = row.values.map((v, i) => ({ val: v, idx: i })).filter(x => x.val !== null && x.val !== undefined && !isNaN(x.val as number));
                       let winnerIdx = -1;
                       if (validValues.length >= 2) {
+                        let bestVal: number;
                         if (row.higherIsBetter) {
-                          winnerIdx = validValues.reduce((best, curr) => (curr.val as number) > (best.val as number) ? curr : best).idx;
+                          bestVal = Math.max(...validValues.map(x => x.val as number));
                         } else {
-                          winnerIdx = validValues.reduce((best, curr) => (curr.val as number) < (best.val as number) ? curr : best).idx;
+                          bestVal = Math.min(...validValues.map(x => x.val as number));
+                        }
+                        // Only highlight if there's a unique winner (no tie)
+                        const winners = validValues.filter(x => x.val === bestVal);
+                        if (winners.length === 1) {
+                          winnerIdx = winners[0].idx;
                         }
                       }
 

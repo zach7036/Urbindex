@@ -140,6 +140,12 @@ img { max-width: 100%; display: block; }
   border-radius: inherit;
 }
 
+.no-focus-ring:focus-visible,
+.no-focus-ring:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 /* ---- Layout ---- */
 .container {
   width: 100%;
