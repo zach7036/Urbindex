@@ -645,26 +645,11 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                       ))}
                     </div>
 
-                    {/* Data rows with heat map coloring */}
+                    {/* Data rows */}
                     {section.rows.map((row, ri) => {
-                      // Determine winner and rank each value (no highlight on ties)
+                      // Determine winner (no highlight on ties)
                       const validValues = row.values.map((v, i) => ({ val: v, idx: i })).filter(x => x.val !== null && x.val !== undefined && !isNaN(x.val as number));
                       let winnerIdx = -1;
-                      // Sort to get ranks: rank 0 = best, rank N-1 = worst
-                      const sorted = [...validValues].sort((a, b) => {
-                        if (row.higherIsBetter) return (b.val as number) - (a.val as number);
-                        return (a.val as number) - (b.val as number);
-                      });
-                      // Build rank map (ties get same rank)
-                      const rankMap = new Map<number, number>();
-                      sorted.forEach((item, i) => {
-                        // If same value as previous, same rank
-                        if (i > 0 && item.val === sorted[i - 1].val) {
-                          rankMap.set(item.idx, rankMap.get(sorted[i - 1].idx)!);
-                        } else {
-                          rankMap.set(item.idx, i);
-                        }
-                      });
                       if (validValues.length >= 2) {
                         const bestVal = row.higherIsBetter
                           ? Math.max(...validValues.map(x => x.val as number))
@@ -672,7 +657,6 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                         const winners = validValues.filter(x => x.val === bestVal);
                         if (winners.length === 1) winnerIdx = winners[0].idx;
                       }
-                      const maxRank = Math.max(sorted.length - 1, 1);
 
                       return (
                         <div key={row.key} style={{
@@ -688,39 +672,16 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                           </div>
                           {row.values.map((val, ci) => {
                             const isWinner = ci === winnerIdx && validValues.length >= 2;
-                            const isValid = val !== null && val !== undefined && !isNaN(val);
-                            const rank = rankMap.get(ci);
-
-                            // Heat map: green (best) → neutral → red (worst)
-                            let cellBg = 'transparent';
-                            if (isValid && rank !== undefined && validValues.length >= 2) {
-                              const t = rank / maxRank; // 0 = best, 1 = worst
-                              if (t <= 0.01) {
-                                // Best — subtle green
-                                cellBg = 'rgba(6, 214, 160, 0.10)';
-                              } else if (t >= 0.99) {
-                                // Worst — subtle red
-                                cellBg = 'rgba(239, 68, 68, 0.08)';
-                              } else {
-                                // Middle — very subtle neutral
-                                cellBg = 'rgba(255, 255, 255, 0.02)';
-                              }
-                            }
-
                             return (
                               <div key={ci} style={{
                                 padding: '12px 16px', textAlign: 'center',
+                                fontFamily: 'var(--font-mono)', fontSize: '0.9rem',
+                                fontWeight: isWinner ? 700 : 400,
+                                color: isWinner ? '#06d6a0' : 'var(--color-text-primary)',
                                 borderLeft: '1px solid var(--color-border)',
-                                background: cellBg,
-                                transition: 'background 0.3s ease',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
                               }}>
-                                <span style={{
-                                  fontFamily: 'var(--font-mono)', fontSize: '0.9rem',
-                                  fontWeight: isWinner ? 700 : 400,
-                                  color: isWinner ? '#06d6a0' : 'var(--color-text-primary)',
-                                }}>
-                                  {fmtVal(val, row.format)}
-                                </span>
+                                {fmtVal(val, row.format)}
                               </div>
                             );
                           })}
