@@ -67,13 +67,13 @@ async function computeCustomIndices() {
 
     // --- 1. Affordability Index (0-100) ---
     // Ratio = Home Price / Income. 
-    // Ratio of < 3.0 = 100. Ratio of > 10.0 = 0.
+    // Ratio of < 3.0 = 100. Ratio of > 15.0 = 5 (floor).
     let affordabilityScore = 50;
     if (income > 0 && homeVal > 0) {
       const ratio = homeVal / income;
-      affordabilityScore = 100 - ((ratio - 3) * (100 / 7)); // (10-3)=7 slope
+      affordabilityScore = 100 - ((ratio - 3) * (95 / 12)); // (15-3)=12 slope, 95 range (100 to 5)
     }
-    const affordFinal = Math.min(100, Math.max(0, Math.round(affordabilityScore)));
+    const affordFinal = Math.min(100, Math.max(5, Math.round(affordabilityScore)));
 
     // Normalize building blocks
     const bachelorsNorm = Math.min(100, (bachelors / 40) * 100); // 40% bachelors = perfect 100
