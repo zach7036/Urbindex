@@ -78,10 +78,9 @@ export const METRICS: MetricDef[] = [
 
   // ─── Climate ────────────────────────────────────────
   { key: 'avg_high_jul', label: 'Avg Summer High (Jul)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: false, description: 'Average daily high temperature in July' },
-  { key: 'avg_low_jan', label: 'Avg Winter Low (Jan)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: true, description: 'Average daily low temperature in January' },
+  { key: 'avg_low_jul', label: 'Avg Summer Low (Jul)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: true, description: 'Average daily low temperature in July' },
   { key: 'avg_high_jan', label: 'Avg Winter High (Jan)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: true, description: 'Average daily high temperature in January' },
-  { key: 'avg_high_apr', label: 'Avg Spring High (Apr)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: true, description: 'Average daily high temperature in April' },
-  { key: 'avg_high_oct', label: 'Avg Fall High (Oct)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: true, description: 'Average daily high temperature in October' },
+  { key: 'avg_low_jan', label: 'Avg Winter Low (Jan)', category: 'climate', table: 'city_climate', format: 'temperature', higherIsBetter: true, description: 'Average daily low temperature in January' },
   { key: 'annual_precipitation', label: 'Annual Precipitation', category: 'climate', table: 'city_climate', format: 'inches', higherIsBetter: false, description: 'Total inches of rain and melted snow per year' },
   { key: 'annual_snowfall', label: 'Annual Snowfall', category: 'climate', table: 'city_climate', format: 'inches', higherIsBetter: false, description: 'Total inches of snowfall per year' },
   { key: 'sunny_days', label: 'Sunny Days / Year', category: 'climate', table: 'city_climate', format: 'days', higherIsBetter: true, description: 'Number of days per year with mostly clear skies' },
