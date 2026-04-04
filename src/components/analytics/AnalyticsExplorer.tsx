@@ -7,6 +7,7 @@ import {
   TreePine, Star, ArrowUpDown, ArrowDown, ArrowUp,
   Search, Filter, X, ChevronDown, Loader2, BarChart3,
 } from 'lucide-react';
+import { fuzzyMatchCity } from '@/lib/search-utils';
 import { supabase } from '@/lib/supabase';
 import { getCityUrl } from '@/lib/utils';
 import {
@@ -167,8 +168,7 @@ export default function AnalyticsExplorer() {
 
     // Search within results
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(c => c.name.toLowerCase().includes(q));
+      list = list.filter(c => fuzzyMatchCity(c.name, searchQuery));
     }
 
     // Sort

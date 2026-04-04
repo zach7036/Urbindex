@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatNumber, getCityUrl } from '@/lib/utils';
+import { getSupabaseSearchPatterns } from '@/lib/search-utils';
 
 interface SearchResult {
   fips_code: string;
@@ -37,7 +38,8 @@ export default function CitySearch({ onSelect, autoFocus, large }: CitySearchPro
   }, [autoFocus]);
 
   useEffect(() => {
-    if (query.length < 2) {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
       setResults([]);
       setOpen(false);
       return;
@@ -45,10 +47,15 @@ export default function CitySearch({ onSelect, autoFocus, large }: CitySearchPro
 
     const searchCities = async () => {
       setIsSearching(true);
+      const patterns = getSupabaseSearchPatterns(trimmed);
+      
+      // Build OR query for all search variants
+      const orFilter = patterns.map(p => `name.ilike.${p}`).join(',');
+      
       const { data, error } = await supabase
         .from('cities')
         .select('fips_code, name, state, state_code, population, slug')
-        .ilike('name', `%${query}%`)
+        .or(orFilter)
         .order('population', { ascending: false })
         .limit(8);
 
