@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, ChevronDown, ChevronRight, Users, DollarSign, Home, Sun, Shield, GraduationCap, TreePine, Star } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, ChevronDown, ChevronRight, Users, DollarSign, Home, Sun, Shield, GraduationCap, TreePine, Star, ExternalLink, Trophy, Zap } from 'lucide-react';
 import { CityProfile } from '@/lib/types';
 import { NATIONAL_AVERAGES } from '@/lib/constants';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, getCityUrl, slugify, STATE_NAMES } from '@/lib/utils';
 import { fetchCityComparison } from '@/app/compare/actions';
 import CityPicker from './CityPicker';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, Tooltip } from 'recharts';
@@ -36,6 +37,15 @@ interface CompareSection {
 }
 
 const CITY_COLORS = ['#8b5cf6', '#06d6a0', '#f59e0b', '#3b82f6'];
+
+// ── Quick-Compare Presets ──────────────────
+const PRESETS = [
+  { label: '🏙️ NYC vs LA vs Chicago', fips: ['3651000', '0644000', '1714000'] },
+  { label: '💻 Tech Hubs', fips: ['0667000', '5363000', '4805000'] },
+  { label: '🌴 Sun Belt', fips: ['1245000', '0427000', '4835000'] },
+  { label: '🏡 Midwest Gems', fips: ['2918000', '3918000', '2743000'] },
+  { label: '🎓 College Towns', fips: ['3755000', '2603000', '3712000'] },
+];
 
 function fmtVal(value: number | null | undefined, format: string): string {
   if (value === null || value === undefined || isNaN(value)) return '—';
@@ -166,6 +176,35 @@ function buildSections(profiles: CityProfile[]): CompareSection[] {
   ];
 }
 
+// ── Victory Summary ────────────────────────
+function computeVerdicts(sections: CompareSection[], profiles: CityProfile[]) {
+  const wins: number[] = profiles.map(() => 0);
+  let ties = 0;
+  let totalMetrics = 0;
+
+  for (const section of sections) {
+    for (const row of section.rows) {
+      const valid = row.values.map((v, i) => ({ val: v, idx: i })).filter(x => x.val !== null && x.val !== undefined && !isNaN(x.val as number));
+      if (valid.length < 2) continue;
+      totalMetrics++;
+      let bestVal: number;
+      if (row.higherIsBetter) {
+        bestVal = Math.max(...valid.map(x => x.val as number));
+      } else {
+        bestVal = Math.min(...valid.map(x => x.val as number));
+      }
+      const winners = valid.filter(x => x.val === bestVal);
+      if (winners.length === 1) {
+        wins[winners[0].idx]++;
+      } else {
+        ties++;
+      }
+    }
+  }
+
+  return { wins, ties, totalMetrics };
+}
+
 export default function CompareClient({ initialFips }: { initialFips?: string[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -192,7 +231,6 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
       const fipsCodes = citiesParam.split(',').filter(Boolean).slice(0, 4);
       if (fipsCodes.length > 0) {
         setLoading(true);
-        // Fetch city metadata from supabase to populate slots
         import('@/lib/supabase').then(({ supabase }) => {
           supabase
             .from('cities')
@@ -220,7 +258,6 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
       return;
     }
 
-    // Update URL
     const newParams = new URLSearchParams();
     newParams.set('cities', selectedFips.join(','));
     router.replace(`/compare?${newParams.toString()}`, { scroll: false });
@@ -234,7 +271,6 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
   }, [slots]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelect = (index: number, city: CitySlot) => {
-    // Prevent duplicate cities
     if (slots.some(s => s?.fips_code === city.fips_code)) return;
     const newSlots = [...slots];
     newSlots[index] = city;
@@ -244,7 +280,6 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
   const handleRemove = (index: number) => {
     const newSlots = [...slots];
     newSlots[index] = null;
-    // Remove trailing nulls beyond 2
     while (newSlots.length > 2 && newSlots[newSlots.length - 1] === null) {
       newSlots.pop();
     }
@@ -257,13 +292,32 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
     }
   };
 
+  const loadPreset = (fipsCodes: string[]) => {
+    setLoading(true);
+    import('@/lib/supabase').then(({ supabase }) => {
+      supabase
+        .from('cities')
+        .select('fips_code, name, state, state_code, population, slug')
+        .in('fips_code', fipsCodes)
+        .then(({ data }) => {
+          if (data) {
+            const newSlots: (CitySlot | null)[] = fipsCodes.map(fips =>
+              data.find(c => c.fips_code === fips) || null
+            );
+            setSlots(newSlots);
+          }
+        });
+    });
+  };
+
   const toggleSection = (title: string) => {
     setExpandedSections(prev => ({ ...prev, [title]: !prev[title] }));
   };
 
   const sections = profiles.length >= 2 ? buildSections(profiles) : [];
+  const verdict = profiles.length >= 2 ? computeVerdicts(sections, profiles) : null;
 
-  // Build radar chart data from Urbindex scores
+  // Radar chart data
   const radarData = profiles.length >= 2 ? [
     { metric: 'Livability', ...Object.fromEntries(profiles.map((p, i) => [`city${i}`, p.computed_scores?.overall_livability || 0])) },
     { metric: 'Affordability', ...Object.fromEntries(profiles.map((p, i) => [`city${i}`, p.computed_scores?.affordability_index || 0])) },
@@ -275,7 +329,7 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 var(--space-lg)' }}>
       {/* Page header */}
-      <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
+      <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 'var(--space-sm)' }}>
           Compare Cities
         </h1>
@@ -283,6 +337,47 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
           Select 2–4 cities to compare side-by-side across every data metric.
         </p>
       </div>
+
+      {/* Quick-Compare Presets (#4) */}
+      {profiles.length < 2 && !loading && (
+        <div style={{ marginBottom: 'var(--space-xl)' }}>
+          <div style={{
+            fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+            color: 'var(--color-text-tertiary)', marginBottom: 'var(--space-sm)', textAlign: 'center',
+          }}>
+            <Zap size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+            Quick Compare
+          </div>
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center',
+          }}>
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                onClick={() => loadPreset(preset.fips)}
+                style={{
+                  background: 'var(--color-bg-glass)', border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-full)', padding: '8px 16px',
+                  color: 'var(--color-text-secondary)', cursor: 'pointer',
+                  fontSize: '0.85rem', fontFamily: 'inherit', transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                  e.currentTarget.style.background = 'rgba(6, 214, 160, 0.06)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                  e.currentTarget.style.color = 'var(--color-text-secondary)';
+                  e.currentTarget.style.background = 'var(--color-bg-glass)';
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* City selectors */}
       <div style={{
@@ -307,6 +402,31 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
               placeholder={`Search city ${idx + 1}...`}
               autoFocus={idx === 0 && !slot}
             />
+            {/* View City Profile button (#2) */}
+            {slot && (
+              <Link
+                href={getCityUrl(slot.state_code, slot.slug)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  marginTop: '6px', padding: '7px 12px',
+                  fontSize: '0.78rem', fontWeight: 600, fontFamily: 'inherit',
+                  color: CITY_COLORS[idx], background: 'transparent',
+                  border: `1px solid ${CITY_COLORS[idx]}33`,
+                  borderRadius: 'var(--radius-md)',
+                  textDecoration: 'none', transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = `${CITY_COLORS[idx]}15`;
+                  e.currentTarget.style.borderColor = `${CITY_COLORS[idx]}66`;
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = `${CITY_COLORS[idx]}33`;
+                }}
+              >
+                View {slot.name} Profile <ExternalLink size={12} />
+              </Link>
+            )}
           </div>
         ))}
         {slots.length < 4 && (
@@ -356,7 +476,78 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
         }}>
           <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-md)' }}>⚖️</div>
           <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '4px' }}>Select two or more cities to compare</div>
-          <div style={{ fontSize: '0.9rem' }}>Use the search boxes above to find any US city</div>
+          <div style={{ fontSize: '0.9rem' }}>Use the search boxes above or try a quick compare preset</div>
+        </div>
+      )}
+
+      {/* Victory Summary Card (#1) */}
+      {profiles.length >= 2 && !loading && verdict && (
+        <div style={{
+          background: 'var(--color-bg-card)', borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--color-border)', padding: 'var(--space-lg)',
+          marginBottom: 'var(--space-xl)',
+        }}>
+          <div style={{
+            fontSize: '1rem', fontWeight: 700, marginBottom: 'var(--space-md)',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <Trophy size={18} style={{ color: '#f59e0b' }} />
+            Which City Wins?
+          </div>
+
+          {/* Win bars */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: 'var(--space-md)' }}>
+            {profiles.map((p, i) => {
+              const pct = verdict.totalMetrics > 0 ? (verdict.wins[i] / verdict.totalMetrics) * 100 : 0;
+              const isTopWinner = verdict.wins[i] === Math.max(...verdict.wins);
+              return (
+                <div key={p.city.fips_code} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '120px', fontSize: '0.85rem', fontWeight: 700,
+                    color: CITY_COLORS[i], flexShrink: 0, textAlign: 'right',
+                  }}>
+                    {p.city.name}
+                  </div>
+                  <div style={{
+                    flex: 1, height: '28px', background: 'rgba(255,255,255,0.03)',
+                    borderRadius: 'var(--radius-md)', overflow: 'hidden', position: 'relative',
+                  }}>
+                    <div style={{
+                      height: '100%', width: `${pct}%`,
+                      background: `linear-gradient(90deg, ${CITY_COLORS[i]}33, ${CITY_COLORS[i]}88)`,
+                      borderRadius: 'var(--radius-md)',
+                      transition: 'width 0.6s ease-out',
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                      paddingRight: '8px',
+                    }}>
+                      {pct > 15 && (
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>
+                          {verdict.wins[i]} wins
+                        </span>
+                      )}
+                    </div>
+                    {pct <= 15 && (
+                      <span style={{
+                        position: 'absolute', left: `calc(${pct}% + 8px)`, top: '50%', transform: 'translateY(-50%)',
+                        fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-tertiary)',
+                      }}>
+                        {verdict.wins[i]} wins
+                      </span>
+                    )}
+                  </div>
+                  {isTopWinner && verdict.wins[i] > 0 && (
+                    <span style={{ fontSize: '0.8rem' }}>👑</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Summary text */}
+          <div style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)', textAlign: 'center' }}>
+            {verdict.ties > 0 && `${verdict.ties} tied · `}
+            {verdict.totalMetrics} metrics compared
+          </div>
         </div>
       )}
 
@@ -454,7 +645,7 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                       ))}
                     </div>
 
-                    {/* Data rows */}
+                    {/* Data rows with inline bar visualization (#5) */}
                     {section.rows.map((row, ri) => {
                       // Determine winner (no highlight on ties)
                       const validValues = row.values.map((v, i) => ({ val: v, idx: i })).filter(x => x.val !== null && x.val !== undefined && !isNaN(x.val as number));
@@ -466,19 +657,21 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                         } else {
                           bestVal = Math.min(...validValues.map(x => x.val as number));
                         }
-                        // Only highlight if there's a unique winner (no tie)
                         const winners = validValues.filter(x => x.val === bestVal);
                         if (winners.length === 1) {
                           winnerIdx = winners[0].idx;
                         }
                       }
 
+                      // Compute bar widths relative to max value in this row
+                      const absValues = validValues.map(x => Math.abs(x.val as number));
+                      const maxAbs = Math.max(...absValues, 1); // avoid /0
+
                       return (
                         <div key={row.key} style={{
                           display: 'grid',
                           gridTemplateColumns: `200px repeat(${profiles.length}, 1fr)`,
                           borderBottom: ri < section.rows.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none',
-                          background: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
                         }}>
                           <div style={{
                             padding: '12px 20px', fontSize: '0.85rem', fontWeight: 500,
@@ -488,16 +681,32 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                           </div>
                           {row.values.map((val, ci) => {
                             const isWinner = ci === winnerIdx && validValues.length >= 2;
+                            const barPct = val !== null && val !== undefined && !isNaN(val)
+                              ? (Math.abs(val) / maxAbs) * 100
+                              : 0;
+                            const barColor = isWinner ? 'rgba(6, 214, 160, 0.12)' : 'rgba(255, 255, 255, 0.04)';
+
                             return (
                               <div key={ci} style={{
                                 padding: '12px 16px', textAlign: 'center',
-                                fontFamily: 'var(--font-mono)', fontSize: '0.9rem', fontWeight: isWinner ? 700 : 400,
-                                color: isWinner ? '#06d6a0' : 'var(--color-text-primary)',
-                                background: isWinner ? 'rgba(6, 214, 160, 0.06)' : 'transparent',
                                 borderLeft: '1px solid var(--color-border)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                position: 'relative', overflow: 'hidden',
                               }}>
-                                {fmtVal(val, row.format)}
+                                {/* Background bar (#5) */}
+                                <div style={{
+                                  position: 'absolute', left: 0, top: 0, bottom: 0,
+                                  width: `${barPct}%`, background: barColor,
+                                  transition: 'width 0.4s ease-out',
+                                }} />
+                                {/* Value text */}
+                                <span style={{
+                                  position: 'relative', zIndex: 1,
+                                  fontFamily: 'var(--font-mono)', fontSize: '0.9rem',
+                                  fontWeight: isWinner ? 700 : 400,
+                                  color: isWinner ? '#06d6a0' : 'var(--color-text-primary)',
+                                }}>
+                                  {fmtVal(val, row.format)}
+                                </span>
                               </div>
                             );
                           })}
