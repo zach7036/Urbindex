@@ -645,27 +645,34 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                       ))}
                     </div>
 
-                    {/* Data rows with inline bar visualization (#5) */}
+                    {/* Data rows with heat map coloring */}
                     {section.rows.map((row, ri) => {
-                      // Determine winner (no highlight on ties)
+                      // Determine winner and rank each value (no highlight on ties)
                       const validValues = row.values.map((v, i) => ({ val: v, idx: i })).filter(x => x.val !== null && x.val !== undefined && !isNaN(x.val as number));
                       let winnerIdx = -1;
-                      if (validValues.length >= 2) {
-                        let bestVal: number;
-                        if (row.higherIsBetter) {
-                          bestVal = Math.max(...validValues.map(x => x.val as number));
+                      // Sort to get ranks: rank 0 = best, rank N-1 = worst
+                      const sorted = [...validValues].sort((a, b) => {
+                        if (row.higherIsBetter) return (b.val as number) - (a.val as number);
+                        return (a.val as number) - (b.val as number);
+                      });
+                      // Build rank map (ties get same rank)
+                      const rankMap = new Map<number, number>();
+                      sorted.forEach((item, i) => {
+                        // If same value as previous, same rank
+                        if (i > 0 && item.val === sorted[i - 1].val) {
+                          rankMap.set(item.idx, rankMap.get(sorted[i - 1].idx)!);
                         } else {
-                          bestVal = Math.min(...validValues.map(x => x.val as number));
+                          rankMap.set(item.idx, i);
                         }
+                      });
+                      if (validValues.length >= 2) {
+                        const bestVal = row.higherIsBetter
+                          ? Math.max(...validValues.map(x => x.val as number))
+                          : Math.min(...validValues.map(x => x.val as number));
                         const winners = validValues.filter(x => x.val === bestVal);
-                        if (winners.length === 1) {
-                          winnerIdx = winners[0].idx;
-                        }
+                        if (winners.length === 1) winnerIdx = winners[0].idx;
                       }
-
-                      // Compute bar widths relative to max value in this row
-                      const absValues = validValues.map(x => Math.abs(x.val as number));
-                      const maxAbs = Math.max(...absValues, 1); // avoid /0
+                      const maxRank = Math.max(sorted.length - 1, 1);
 
                       return (
                         <div key={row.key} style={{
@@ -681,26 +688,33 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                           </div>
                           {row.values.map((val, ci) => {
                             const isWinner = ci === winnerIdx && validValues.length >= 2;
-                            const barPct = val !== null && val !== undefined && !isNaN(val)
-                              ? (Math.abs(val) / maxAbs) * 100
-                              : 0;
-                            const barColor = isWinner ? 'rgba(6, 214, 160, 0.12)' : 'rgba(255, 255, 255, 0.04)';
+                            const isValid = val !== null && val !== undefined && !isNaN(val);
+                            const rank = rankMap.get(ci);
+
+                            // Heat map: green (best) → neutral → red (worst)
+                            let cellBg = 'transparent';
+                            if (isValid && rank !== undefined && validValues.length >= 2) {
+                              const t = rank / maxRank; // 0 = best, 1 = worst
+                              if (t <= 0.01) {
+                                // Best — subtle green
+                                cellBg = 'rgba(6, 214, 160, 0.10)';
+                              } else if (t >= 0.99) {
+                                // Worst — subtle red
+                                cellBg = 'rgba(239, 68, 68, 0.08)';
+                              } else {
+                                // Middle — very subtle neutral
+                                cellBg = 'rgba(255, 255, 255, 0.02)';
+                              }
+                            }
 
                             return (
                               <div key={ci} style={{
                                 padding: '12px 16px', textAlign: 'center',
                                 borderLeft: '1px solid var(--color-border)',
-                                position: 'relative', overflow: 'hidden',
+                                background: cellBg,
+                                transition: 'background 0.3s ease',
                               }}>
-                                {/* Background bar (#5) */}
-                                <div style={{
-                                  position: 'absolute', left: 0, top: 0, bottom: 0,
-                                  width: `${barPct}%`, background: barColor,
-                                  transition: 'width 0.4s ease-out',
-                                }} />
-                                {/* Value text */}
                                 <span style={{
-                                  position: 'relative', zIndex: 1,
                                   fontFamily: 'var(--font-mono)', fontSize: '0.9rem',
                                   fontWeight: isWinner ? 700 : 400,
                                   color: isWinner ? '#06d6a0' : 'var(--color-text-primary)',
