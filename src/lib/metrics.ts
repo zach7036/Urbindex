@@ -88,7 +88,6 @@ export const METRICS: MetricDef[] = [
   { key: 'days_above_90', label: 'Days Above 90°F', category: 'climate', table: 'city_climate', format: 'days', higherIsBetter: false, description: 'Number of days per year where the temperature exceeds 90°F' },
   { key: 'days_below_32', label: 'Days Below 32°F', category: 'climate', table: 'city_climate', format: 'days', higherIsBetter: false, description: 'Number of days per year where the temperature drops below freezing' },
   { key: 'avg_humidity', label: 'Avg Humidity', category: 'climate', table: 'city_climate', format: 'percent', higherIsBetter: false, description: 'Average relative humidity throughout the year' },
-  { key: 'uv_index', label: 'UV Index', category: 'climate', table: 'city_climate', format: 'number', higherIsBetter: false, description: 'Average ultraviolet radiation level — higher means more sun exposure' },
   { key: 'comfort_index', label: 'Comfort Index', category: 'climate', table: 'city_climate', format: 'score', higherIsBetter: true, description: 'Overall weather pleasantness score from 0–100' },
 
   // ─── Safety ────────────────────────────────────────

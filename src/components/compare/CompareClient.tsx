@@ -678,6 +678,7 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                                 fontFamily: 'var(--font-mono)', fontSize: '0.9rem',
                                 fontWeight: isWinner ? 700 : 400,
                                 color: isWinner ? '#06d6a0' : 'var(--color-text-primary)',
+                                background: isWinner ? 'rgba(6, 214, 160, 0.06)' : 'transparent',
                                 borderLeft: '1px solid var(--color-border)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                               }}>
