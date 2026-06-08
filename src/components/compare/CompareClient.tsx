@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Plus, ChevronDown, ChevronRight, Users, DollarSign, Home, Sun, Shield, GraduationCap, TreePine, Star, ExternalLink, Trophy, Zap } from 'lucide-react';
 import { CityProfile } from '@/lib/types';
 import { NATIONAL_AVERAGES } from '@/lib/constants';
-import { formatNumber, getCityUrl, slugify, STATE_NAMES } from '@/lib/utils';
+import { getCityUrl } from '@/lib/utils';
 import { fetchCityComparison } from '@/app/compare/actions';
 import CityPicker from './CityPicker';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, Tooltip } from 'recharts';
@@ -42,8 +42,8 @@ const CITY_COLORS = ['#8b5cf6', '#06d6a0', '#f59e0b', '#3b82f6'];
 const PRESETS = [
   { label: '🏙️ NYC vs LA vs Chicago', fips: ['3651000', '0644000', '1714000'] },
   { label: '💻 Tech Hubs', fips: ['0667000', '5363000', '4805000'] },
-  { label: '🌴 Sun Belt', fips: ['1245000', '0427000', '4835000'] },
-  { label: '🏡 Midwest Gems', fips: ['2918000', '3918000', '2743000'] },
+  { label: '🌴 Sun Belt', fips: ['1245000', '0455000', '4835000'] },
+  { label: '🏡 Midwest Gems', fips: ['2938000', '3918000', '2743000'] },
   { label: '🎓 College Towns', fips: ['3755000', '2603000', '3712000'] },
 ];
 
@@ -205,10 +205,10 @@ function computeVerdicts(sections: CompareSection[], profiles: CityProfile[]) {
   return { wins, ties, totalMetrics };
 }
 
-export default function CompareClient({ initialFips }: { initialFips?: string[] }) {
+export default function CompareClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const [slots, setSlots] = useState<(CitySlot | null)[]>([null, null]);
   const [profiles, setProfiles] = useState<CityProfile[]>([]);
@@ -255,6 +255,7 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
     const selectedFips = slots.filter(Boolean).map(s => s!.fips_code);
     if (selectedFips.length < 2) {
       setProfiles([]);
+      setLoading(false); // nothing to fetch — don't leave a preset/URL load spinning
       return;
     }
 
@@ -300,12 +301,11 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
         .select('fips_code, name, state, state_code, population, slug')
         .in('fips_code', fipsCodes)
         .then(({ data }) => {
-          if (data) {
-            const newSlots: (CitySlot | null)[] = fipsCodes.map(fips =>
-              data.find(c => c.fips_code === fips) || null
-            );
-            setSlots(newSlots);
-          }
+          const newSlots: (CitySlot | null)[] = fipsCodes
+            .map(fips => data?.find(c => c.fips_code === fips) || null)
+            .filter((s): s is CitySlot => s !== null);
+          while (newSlots.length < 2) newSlots.push(null);
+          setSlots(newSlots);
         });
     });
   };
@@ -647,15 +647,14 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
 
                     {/* Data rows */}
                     {section.rows.map((row, ri) => {
-                      // Determine winner (no highlight on ties)
+                      // Determine winners (including ties)
                       const validValues = row.values.map((v, i) => ({ val: v, idx: i })).filter(x => x.val !== null && x.val !== undefined && !isNaN(x.val as number));
-                      let winnerIdx = -1;
+                      let winnerIdxs: number[] = [];
                       if (validValues.length >= 2) {
                         const bestVal = row.higherIsBetter
                           ? Math.max(...validValues.map(x => x.val as number))
                           : Math.min(...validValues.map(x => x.val as number));
-                        const winners = validValues.filter(x => x.val === bestVal);
-                        if (winners.length === 1) winnerIdx = winners[0].idx;
+                        winnerIdxs = validValues.filter(x => x.val === bestVal).map(x => x.idx);
                       }
 
                       return (
@@ -671,7 +670,7 @@ export default function CompareClient({ initialFips }: { initialFips?: string[] 
                             {row.label}
                           </div>
                           {row.values.map((val, ci) => {
-                            const isWinner = ci === winnerIdx && validValues.length >= 2;
+                            const isWinner = winnerIdxs.includes(ci) && validValues.length >= 2;
                             return (
                               <div key={ci} style={{
                                 padding: '12px 16px', textAlign: 'center',

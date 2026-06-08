@@ -3,7 +3,7 @@
 import { CloudSun } from 'lucide-react';
 import StatCard from './StatCard';
 import { CityClimate } from '@/lib/types';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface Props { data: CityClimate; }
 

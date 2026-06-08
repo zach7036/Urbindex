@@ -161,7 +161,6 @@ export interface CityComputedScores {
   cultural_density_index: number;
   overall_livability: number;
   affordability_index: number;
-  remote_work_score: number;
 }
 
 export interface CityProfile {

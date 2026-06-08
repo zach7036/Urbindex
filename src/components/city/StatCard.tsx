@@ -54,7 +54,7 @@ export default function StatCard({ label, value, format, comparison, suffix, dec
       {comparison && (
         <div className={`stat-comparison ${compClass}`}>
           <CompIcon size={12} />
-          {getComparisonLabel(value, comparison.avgValue, comparison.higherIsBetter)}
+          {getComparisonLabel(value, comparison.avgValue)}
           {comparison.avgLabel && (
             <span style={{ color: 'var(--color-text-tertiary)', marginLeft: 4 }}>
               vs {comparison.avgLabel}

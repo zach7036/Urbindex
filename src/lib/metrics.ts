@@ -119,7 +119,6 @@ export const METRICS: MetricDef[] = [
   { key: 'hidden_gem_score', label: 'Hidden Gem Score', category: 'scores', table: 'city_computed_scores', format: 'score', higherIsBetter: true, description: 'Underrated cities with high quality of life but low national attention (0–100)' },
   { key: 'cultural_density_index', label: 'City Pulse Score', category: 'scores', table: 'city_computed_scores', format: 'score', higherIsBetter: true, description: 'Cultural vibrancy based on restaurants, arts, nightlife, and diversity (0–100)' },
   { key: 'economic_resilience', label: 'Economic Resilience', category: 'scores', table: 'city_computed_scores', format: 'score', higherIsBetter: true, description: 'How well the economy can withstand downturns based on industry diversity (0–100)' },
-  { key: 'remote_work_score', label: 'Remote Work Score', category: 'scores', table: 'city_computed_scores', format: 'score', higherIsBetter: true, description: 'Suitability for remote workers based on broadband, cost, and quality of life (0–100)' },
 ];
 
 // Helper: get metrics for a category

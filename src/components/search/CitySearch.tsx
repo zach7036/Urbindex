@@ -27,7 +27,6 @@ export default function CitySearch({ onSelect, autoFocus, large }: CitySearchPro
   const [results, setResults] = useState<SearchResult[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -46,7 +45,6 @@ export default function CitySearch({ onSelect, autoFocus, large }: CitySearchPro
     }
 
     const searchCities = async () => {
-      setIsSearching(true);
       const patterns = getSupabaseSearchPatterns(trimmed);
       
       // Build OR query for all search variants
@@ -64,7 +62,6 @@ export default function CitySearch({ onSelect, autoFocus, large }: CitySearchPro
         setOpen(data.length > 0);
         setActiveIndex(-1);
       }
-      setIsSearching(false);
     };
 
     const timer = setTimeout(searchCities, 200);

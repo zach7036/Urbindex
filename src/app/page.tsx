@@ -2,7 +2,7 @@ import Link from 'next/link';
 import CitySearch from '@/components/search/CitySearch';
 import { createServiceClient } from '@/lib/supabase';
 import { formatNumber, formatCurrency, getCityUrl } from '@/lib/utils';
-import { ArrowRight, Database, BarChart3, MapPin, Zap, Star } from 'lucide-react';
+import { Database, BarChart3, MapPin, Zap, Star } from 'lucide-react';
 
 export const revalidate = 86400; // Cache 24 hours
 

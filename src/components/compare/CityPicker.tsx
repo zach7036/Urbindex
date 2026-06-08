@@ -151,7 +151,7 @@ export default function CityPicker({ selected, onSelect, onRemove, placeholder, 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => { setFocused(true); results.length > 0 && setOpen(true); }}
+          onFocus={() => { setFocused(true); if (results.length > 0) setOpen(true); }}
           onBlur={() => setFocused(false)}
           style={{
             background: 'transparent', border: 'none', outline: 'none',

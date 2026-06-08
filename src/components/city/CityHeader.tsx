@@ -37,7 +37,7 @@ export default function CityHeader({ profile }: CityHeaderProps) {
             </div>
             <div className="city-meta-item">
               <Thermometer size={16} />
-              {Math.round(climate.avg_high_jul)}°F summer · {Math.round(climate.avg_low_jan)}°F winter
+              {climate.avg_high_jul != null ? `${Math.round(climate.avg_high_jul)}°F` : 'N/A'} summer · {climate.avg_low_jan != null ? `${Math.round(climate.avg_low_jan)}°F` : 'N/A'} winter
             </div>
           </div>
 
@@ -46,7 +46,9 @@ export default function CityHeader({ profile }: CityHeaderProps) {
               <div className="quick-stat-label">Population</div>
               <div className="quick-stat-value">{formatNumberFull(demographics.total_population)}</div>
               <div className="quick-stat-sub">
-                {demographics.population_growth_rate > 0 ? '+' : ''}{demographics.population_growth_rate}% growth
+                {demographics.population_growth_rate != null
+                  ? `${demographics.population_growth_rate > 0 ? '+' : ''}${demographics.population_growth_rate}% growth`
+                  : '—'}
               </div>
             </div>
             <div className="quick-stat">
@@ -58,7 +60,9 @@ export default function CityHeader({ profile }: CityHeaderProps) {
               <div className="quick-stat-label">Median Home</div>
               <div className="quick-stat-value">{formatCurrencyFull(housing.median_home_value)}</div>
               <div className="quick-stat-sub">
-                {housing.yoy_appreciation > 0 ? '+' : ''}{housing.yoy_appreciation}% YoY
+                {housing.yoy_appreciation != null
+                  ? `${housing.yoy_appreciation > 0 ? '+' : ''}${housing.yoy_appreciation}% YoY`
+                  : '—'}
               </div>
             </div>
             <div className="quick-stat">

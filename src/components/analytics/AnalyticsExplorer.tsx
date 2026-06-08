@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
   Users, DollarSign, Home, Sun, Shield, GraduationCap,
-  TreePine, Star, ArrowUpDown, ArrowDown, ArrowUp,
+  TreePine, Star, ArrowDown, ArrowUp,
   Search, Filter, X, ChevronDown, Loader2, BarChart3,
 } from 'lucide-react';
 import { fuzzyMatchCity } from '@/lib/search-utils';
@@ -70,7 +70,7 @@ export default function AnalyticsExplorer() {
             city_safety(violent_crime_rate, property_crime_rate, total_crime_rate, safety_score),
             city_education(high_school_grad_pct, bachelors_pct, graduate_pct, student_teacher_ratio, school_expenditure_per_pupil),
             city_livability(walkscore, transit_score, bike_score, broadband_pct, commute_time_avg, aqi_avg, parks_per_capita, hospitals_per_capita, grocery_stores_per_capita),
-            city_computed_scores(overall_livability, affordability_index, hidden_gem_score, cultural_density_index, economic_resilience, remote_work_score)
+            city_computed_scores(overall_livability, affordability_index, hidden_gem_score, cultural_density_index, economic_resilience)
           `;
 
         // Supabase default limit is 1000 — paginate to get all cities
@@ -171,11 +171,19 @@ export default function AnalyticsExplorer() {
       list = list.filter(c => fuzzyMatchCity(c.name, searchQuery));
     }
 
-    // Sort
+    // Sort. Cities missing data for the active metric always sink to the
+    // bottom — regardless of direction — so "Lowest First" doesn't surface a
+    // wall of blank ("—") rows ahead of real data.
     const key = activeMetric.key;
     list.sort((a, b) => {
-      const av = a[key] ?? -Infinity;
-      const bv = b[key] ?? -Infinity;
+      const av = a[key];
+      const bv = b[key];
+      const aMissing = av == null || (typeof av === 'number' && !isFinite(av));
+      const bMissing = bv == null || (typeof bv === 'number' && !isFinite(bv));
+      if (aMissing || bMissing) {
+        if (aMissing && bMissing) return 0;
+        return aMissing ? 1 : -1;
+      }
       return sortAsc ? av - bv : bv - av;
     });
 

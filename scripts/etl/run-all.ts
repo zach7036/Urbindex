@@ -140,8 +140,7 @@ async function main() {
   // 2. Climate data
   if (toRun.includes('climate')) {
     console.log('\n📦 STEP 2: NOAA Climate Normals\n');
-    const { runClimateETL } = await import('./noaa-climate');
-    // TODO: Load city list from Census output or database
+    // TODO: Load city list from Census output or database, then run the climate ETL
     console.log('   ℹ️  Requires Census ETL output — run Census first');
     console.log('\n' + '─'.repeat(50));
   }

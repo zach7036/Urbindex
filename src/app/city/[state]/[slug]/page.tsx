@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { createServiceClient } from '@/lib/supabase';
@@ -9,11 +10,13 @@ interface PageProps {
   params: Promise<{ state: string; slug: string }>;
 }
 
-async function getCityProfile(stateSlug: string, citySlug: string): Promise<CityProfile | null> {
+// Wrapped in React.cache so generateMetadata() and the page component share a
+// single set of DB round-trips per request instead of fetching the profile twice.
+const getCityProfile = cache(async (stateSlug: string, citySlug: string): Promise<CityProfile | null> => {
   const supabase = createServiceClient();
-  
+
   // Find the exact state code that matches the slug
-  const stateEntry = Object.entries(STATE_NAMES).find(([code, name]) => slugify(name) === stateSlug);
+  const stateEntry = Object.entries(STATE_NAMES).find(([, name]) => slugify(name) === stateSlug);
   const stateCode = stateEntry ? stateEntry[0] : null;
 
   if (!stateCode) return null;
@@ -52,7 +55,7 @@ async function getCityProfile(stateSlug: string, citySlug: string): Promise<City
     livability: livRes.data || {},
     computed_scores: compRes.data || undefined
   } as unknown as CityProfile; // Fallbacks applied internally by UI safely
-}
+});
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { state, slug } = await params;

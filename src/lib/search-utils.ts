@@ -92,11 +92,12 @@ export function fuzzyMatchCity(cityName: string, searchQuery: string): boolean {
  * e.g., "Saint Petersburg" → ["%saint%petersburg%", "%st%petersburg%", "%st.%petersburg%"]
  */
 export function getSupabaseSearchPatterns(query: string): string[] {
-  const trimmed = query.trim();
+  // Strip characters that have special meaning in a PostgREST `.or()` filter:
+  // commas separate OR conditions and parentheses group them, so a query like
+  // "Winston, NC" would otherwise produce a malformed filter and silently fail.
+  const trimmed = query.trim().replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
   if (!trimmed) return [];
 
-  const variants = generateSearchVariants(trimmed);
-  
   // Convert each variant to a Supabase ilike pattern
   // Use the original (non-normalized) patterns too, to handle periods properly
   const patterns: Set<string> = new Set();

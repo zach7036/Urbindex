@@ -1,6 +1,6 @@
 'use client';
 
-import { Map, Info, Compass } from 'lucide-react';
+import { Info, Compass } from 'lucide-react';
 import StatCard from './StatCard';
 import { CityLivability } from '@/lib/types';
 import { NATIONAL_AVERAGES } from '@/lib/constants';

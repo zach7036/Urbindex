@@ -86,18 +86,13 @@ export function getComparisonColor(
 
 export function getComparisonLabel(
   cityValue: number,
-  avgValue: number,
-  higherIsBetter: boolean
+  avgValue: number
 ): string {
   if (cityValue === undefined || cityValue === null || avgValue === undefined || avgValue === null) return 'No data';
   
   const diff = ((cityValue - avgValue) / avgValue) * 100;
   const absDiff = Math.abs(diff);
   const direction = diff > 0 ? 'higher' : 'lower';
-  const quality =
-    (diff > 0 && higherIsBetter) || (diff < 0 && !higherIsBetter)
-      ? 'better'
-      : 'worse';
 
   if (absDiff < 3) return 'Near average';
   return `${absDiff.toFixed(0)}% ${direction}`;
