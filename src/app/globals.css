@@ -347,7 +347,10 @@ img { max-width: 100%; display: block; }
   position: relative;
   padding: var(--space-4xl) 0;
   background: var(--gradient-hero);
-  overflow: hidden;
+  /* No overflow:hidden here — it would clip the city-search dropdown where it
+     extends below the hero. The glow (::before) is inset:0 so it stays
+     contained, and body already sets overflow-x:hidden against side-scroll. */
+  overflow: visible;
 }
 
 .hero::before {
