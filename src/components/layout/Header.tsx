@@ -17,9 +17,11 @@ export default function Header() {
         </Link>
 
         <nav className="header-nav">
-          <Link href="/">Home</Link>
-          <Link href="/explore">Explore</Link>
+          <Link href="/match">Match</Link>
+          <Link href="/afford">Afford</Link>
           <Link href="/analytics">Analytics</Link>
+          <Link href="/map">Map</Link>
+          <Link href="/discover">Discover</Link>
           <Link href="/compare">Compare</Link>
           <button
             onClick={() => setSearchOpen(!searchOpen)}

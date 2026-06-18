@@ -2,7 +2,7 @@ import Link from 'next/link';
 import CitySearch from '@/components/search/CitySearch';
 import { createServiceClient } from '@/lib/supabase';
 import { formatNumber, formatCurrency, getCityUrl } from '@/lib/utils';
-import { Database, BarChart3, MapPin, Zap, Star } from 'lucide-react';
+import { Database, BarChart3, MapPin, Zap, Star, Sparkles, Calculator, Dna, Map as MapIcon, Radar, ArrowRight, Wallet } from 'lucide-react';
 
 export const revalidate = 86400; // Cache 24 hours
 
@@ -103,6 +103,38 @@ export default async function HomePage() {
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>{item.title}</h3>
                 <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>{item.desc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tools */}
+      <section style={{ padding: 'var(--space-3xl) 0', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 'var(--space-sm)' }}>
+              Tools to find your place
+            </h2>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '1rem' }}>
+              Go beyond browsing — put the data to work on your decision.
+            </p>
+          </div>
+
+          <div className="tools-grid">
+            {[
+              { href: '/match', icon: <Sparkles size={22} />, title: 'Where Should I Live?', desc: 'Weight what matters to you and rank every US city by how well it fits.', accent: 'var(--color-accent)' },
+              { href: '/afford', icon: <Wallet size={22} />, title: 'Where Can I Afford?', desc: 'Enter your income and watch the whole country light up green where it fits your budget.', accent: '#06d6a0' },
+              { href: '/cost-of-living', icon: <Calculator size={22} />, title: 'Cost of Living', desc: 'The salary you’d need to keep your lifestyle in another city — taxes included.', accent: '#f59e0b' },
+              { href: '/similar', icon: <Dna size={22} />, title: 'Find Similar Cities', desc: 'Love a city? Discover its closest twins — then filter for cheaper, warmer, or safer.', accent: 'var(--color-estimated)' },
+              { href: '/map', icon: <MapIcon size={22} />, title: 'The Map', desc: 'Pick any metric and watch it light up across every city, coast to coast.', accent: 'var(--color-info)' },
+              { href: '/discover', icon: <Radar size={22} />, title: 'Discover Nearby', desc: 'Drop a pin, set a radius, and rank every city within driving distance.', accent: '#14b8a6' },
+            ].map((tool) => (
+              <Link key={tool.href} href={tool.href} className="tool-card" style={{ '--tool-accent': tool.accent } as React.CSSProperties}>
+                <div className="tool-card-icon">{tool.icon}</div>
+                <div className="tool-card-title">{tool.title}</div>
+                <div className="tool-card-desc">{tool.desc}</div>
+                <div className="tool-card-cta">Open <ArrowRight size={14} /></div>
+              </Link>
             ))}
           </div>
         </div>

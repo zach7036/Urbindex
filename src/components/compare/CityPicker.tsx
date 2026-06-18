@@ -163,8 +163,8 @@ export default function CityPicker({ selected, onSelect, onRemove, placeholder, 
 
       {open && (
         <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-          marginTop: '4px', background: 'var(--color-bg-card)',
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1200,
+          marginTop: '4px', background: 'var(--color-bg-tertiary)',
           border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-xl)', overflow: 'hidden',
         }}>

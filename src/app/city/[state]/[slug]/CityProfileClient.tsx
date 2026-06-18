@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Dna, Calculator, GitCompareArrows } from 'lucide-react';
 import { CityProfile } from '@/lib/types';
 import CityHeader from '@/components/city/CityHeader';
 import DemographicsSection from '@/components/city/DemographicsSection';
@@ -60,6 +62,20 @@ export default function CityProfileClient({ profile }: Props) {
   return (
     <div>
       <CityHeader profile={profile} />
+
+      <div className="container">
+        <div className="city-tools-row">
+          <Link href={`/similar?city=${profile.city.fips_code}`} className="city-tool-link">
+            <Dna size={15} /> Find cities like {profile.city.name}
+          </Link>
+          <Link href="/cost-of-living" className="city-tool-link">
+            <Calculator size={15} /> Cost of living calculator
+          </Link>
+          <Link href="/compare" className="city-tool-link">
+            <GitCompareArrows size={15} /> Compare with another city
+          </Link>
+        </div>
+      </div>
 
       <nav className="section-nav">
         <div className="section-nav-inner">
